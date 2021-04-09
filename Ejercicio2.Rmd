@@ -1,0 +1,252 @@
+---
+title: "Práctico 1"
+author: "Valentina Caldiroli"
+date: "8/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r, echo = FALSE}
+library(readxl)
+library(xtable)
+```
+
+# EJERCICIO 2: 
+
+Cargar los datos
+```{r}
+datos <- read_excel('Tiempos.xlsx')
+```
+
+Estadística descriptiva de los datos
+
+```{r}
+summary(datos)
+```
+
+
+## Parte a:
+
+
+Creamos un plot de los datos, para ver aproximadamente su distribución
+
+```{r}
+with(datos, plot(distancia, tiempo_h, 
+                 xlab= 'distancia (m)', 
+                 ylab = 'tiempo (s)', 
+                 pch= 16))
+```
+
+Y lueo calculamos el coeficiente de correlación de la distancia con el tiempo de carrera de los hombres.
+
+```{r}
+with(datos, cor(distancia, tiempo_h))
+```
+
+Se calcula la estimación de los coeficientes $\beta _0$ y $\beta _1$ para poder utilizar como variable explicada el tiempo en función de la distancia. Utilizazndo los resultados vistos en clase para la siguiente ecuación: 
+
+$$ tiempo_h = \beta_0 + \beta_1*distancia + \epsilon $$
+
+```{r}
+y <- datos$tiempo_h
+x <- datos$distancia
+b1_hat <- cor(x,y) * sd(y)/sd(x)
+b0_hat <- mean(y) - b1_hat*mean(x)
+
+b1_hat
+b0_hat
+```
+
+$\beta_1$ con signo positivo es correcto porque tenemos un coef de correlacion casi perfecto, e implica que cada 5 metros que aumenta la carrera el tiempo aumenta en casi 1 segundo.
+Por otra parte, $\beta_0$ que está también expresado en segundos con signo negativo es raro, si la carrera dura 0 metros, el hombre vuelve atrás en el tiempo. 
+
+Todas estas estimaciones pueden también realizarse con la función: lm
+
+```{r}
+modelo <- lm(tiempo_h ~ distancia, data = datos)
+```
+
+
+Y una vez conocidos los estimadores $\beta$ podemos añadir al gráfico la recta que ajusta al modelo:
+
+```{r}
+with(datos, plot(distancia, tiempo_h, 
+                 xlab= 'distancia (m)', 
+                 ylab = 'tiempo (s)', 
+                 pch= 16))
+abline(b0_hat, b1_hat, col = 'red', lwd = '2')
+```
+
+Y así podemos ajustar la recta que está dada por:
+
+```{r}
+tiempo_h_aj <- b0_hat + b1_hat *x
+```
+
+También podemos utilizar la función: fitted() para hallar la recta, ejemplo: fitted(modelo). Y utilizamos esta recta para hallar los residuos:
+```{r}
+residuos <- y - tiempo_h_aj
+```
+O se puede utilizar la función residuals() para poder obtener lo mismo, ejemplo: residuals(modelo). Para así pasar a graficar los residuos contra la distancia de la carrera, lo que nos devuelve:
+ 
+```{r}
+plot(x, residuos, 
+     xlab = 'distancia (m)',
+     ylab = 'tiempo (s)',
+     pch = 16)
+abline(h = 0, lty = 2)
+```
+
+
+
+Realizamos una tabla con la distancia, el tiempo que ajustamos y los residuos que nos devuelve: 
+
+```{r, results='asis'}
+a <- as.table(cbind(x, tiempo_h_aj, residuos))
+xtable(a, caption = "Tabla de valores ajustados")
+```
+
+Y luego calculamos la suma de cuadrados de los residuos como:
+
+```{r}
+SCR_h <- sum(residuos^2)
+```
+
+Además del $$R^2$$ con la suma de cuadrados totales (SCT) y la suma de cuadrados de los residuos (SCR):
+
+```{r}
+SCT_h <- sum((y-mean(y))^2)
+R2_h <- 1 - SCR_h/SCT_h
+R2_h
+```
+
+
+
+## Parte b:
+
+Para la segunda parte loq ue haremos es trabajar con los logaritmos de las variables, lo que implica que por cada punto porcentual que aumenta la x (distancia), la y (tiempo_h) aumenta en promedio tantos puntos porcentuales.
+
+```{r}
+with(datos, plot(log(distancia), log(tiempo_h), 
+                 xlab= 'log(distancia (m))', 
+                 ylab = 'log(tiempo (s))', 
+                 pch= 16))
+```
+
+Y como se vio en la parte a, también podemos hallar estos datos con la función lm().Y tambipen graficamos para ver ahora sí, mayor aleatoriedad de los residuos, como debería ser; no se veía tan explícito cuando trabajamos solo con el modelo. 
+
+```{r}
+modelo_log <- lm(log(tiempo_h) ~ log(distancia), data= datos)
+betas <- coef(modelo_log)
+b0_hat <- betas[1]
+b1_hat <- betas[2]
+with(datos, plot(log(distancia), log(tiempo_h), 
+                 xlab= 'log(distancia (m))', 
+                 ylab = 'log(tiempo (s))', 
+                 pch= 16))
+abline(b0_hat, b1_hat, col = 'red', lwd = 2)
+```
+Estos valores indican que por cada punto porcentual que aumenta la distancia, el tiempo aumenta en promedio un 12%.
+
+Asi graficamos la transformaci+on del modelo con logaritmo contra los residuos nuevos y nos muestra:
+
+```{r}
+log_tiempo_h_aj <- fitted(modelo_log)
+residuos1 <- residuals(modelo_log)
+plot(log(x), residuos1, 
+     xlab = 'distancia (m)',
+     ylab = 'tiempo (s)',
+     pch = 16)
+abline(h = 0, lty = 2)
+```
+Viendo así una mayor aleatoriedad en el gráfico de los residuos, como debería verse. 
+
+## Parte c: 
+
+Primero graficamos la distribución de los datos en un gráfico de dispersión de la distancia y el tiempo de carrera de las mujeres:
+```{r}
+with(datos, plot(distancia, tiempo_m, 
+                 xlab= 'distancia (m)', 
+                 ylab = 'tiempo (s)', 
+                 pch= 16))
+```
+
+Para luego hallar el coeficiente de correlación entre las variables.
+
+```{r}
+with(datos, cor(distancia, tiempo_m))
+```
+
+Y así estimar los $\beta$ para poder trazar la ecuación de la recta que ajusta al modelo, y lo haremos con la función lm().
+
+```{r}
+modelo1 <- lm(tiempo_m ~ distancia, data = datos)
+betas_m <- coef(modelo1)
+b0_hat_m <- betas_m[1]
+b1_hat_m <- betas_m[2]
+b0_hat_m
+b1_hat_m
+```
+
+Así colocamos la recta al gráfico de dispersión:
+
+```{r}
+with(datos, plot(distancia, tiempo_m, 
+                 xlab= 'distancia (m)', 
+                 ylab = 'tiempo (s)', 
+                 pch= 16))
+abline(b0_hat_m, b1_hat_m, col ='blue', lwd = 2)
+```
+Calculamos a continuación los datos ajustados primero
+```{r}
+tiempo_m_aj <- b0_hat_m + b1_hat_m *x
+```
+Y los residuos luego 
+```{r}
+residuos_m <- y - tiempo_m_aj
+```
+A continuación se muestra en una tabla los valores ajustados, sus residuos y la distancia:
+
+```{r, results='asis'}
+b <- as.table(cbind(x, tiempo_m_aj, residuos_m))
+xtable(b, caption = "Tabla de valores ajustados")
+```
+
+Trabajamos luego para hallar los SCR y SCT para posteriormente hallar el $R^2$
+
+```{r}
+SCR_m <- sum(residuos_m^2)
+SCT_m <- sum((y-mean(y))^2)
+R2_m <- 1 - SCR_m/SCT_m
+R2_m
+```
+
+Y luego transofrmamos el modelo con logaritmo:
+
+```{r}
+modelo_log_m <- lm(log(tiempo_m) ~ log(distancia), data= datos)
+betas_m1 <- coef(modelo_log_m)
+b0_hat_m1 <- betas[1]
+b1_hat_m1 <- betas[2]
+with(datos, plot(log(distancia), log(tiempo_m), 
+                 xlab= 'log(distancia (m))', 
+                 ylab = 'log(tiempo (s))', 
+                 pch= 16))
+abline(b0_hat_m1, b1_hat_m1, col = 'blue', lwd = 2)
+```
+
+Si volvemos a graficar los residuos contra el logaritmo del modelo, obtenemos el siguiente gráfico: 
+
+```{r}
+log_tiempo_m_aj <- fitted(modelo_log_m)
+residuos2 <- residuals(modelo_log_m)
+plot(log(x), residuos2, 
+     xlab = 'distancia (m)',
+     ylab = 'tiempo (s)',
+     pch = 16)
+abline(h = 0, lty = 2)
+```
+
+Con el análisis anterior observamos como tanto para hombres como para mujeres, las correlaciones son casi perfectas, lo demuestra tanto el coeficiente de correlación como el $R^2$.Observandose en los gráficos. Pero lo que no se muestra mucho es la aleatoriedad de los residuos cuando es un modelo típico, en cambio cuando lo transformamos con el logarítmo y graficamos nuevamente ahí si demuestra mucho mejor su aleatoriedad. 
