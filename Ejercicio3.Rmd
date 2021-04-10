@@ -36,4 +36,18 @@ Lo que nos devolvió un valor para $\beta_0 = 0,848$ y $\beta_1 = 0.61$. Por lo 
 Lo que indicaría que cuando la tasa contable es nula, la tasa de mercado es 0.848. Y por cada 0,61 que incremente la tasa contable, la de mercado aumentará en 0,848. 
 
 Ya una vez con la recta ajustada determinada, se analizará la varianza de los errores. 
+```{r}
+
+```
+
+Y el coeficiente  de determinación $R^2$. Por lo que hallaremos los residuos, las sumas de loa cuadrados totales y residuales. 
+
+```{r}
+residuos <- y - y_aj
+SCR <- sum(residuos^2)
+SCT <- sum((y-mean(y))^2)
+R2 <- 1 - SCR/SCT
+R2
+```
+
 
