@@ -1,0 +1,39 @@
+---
+title: "Ejercicio 3"
+author: "Valentina Caldiroli"
+date: "10/4/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+library(readxl)
+library(tidyverse)
+datos <- read_excel('Accounting_Return_Data.xlsx')
+datos %>% rename('Tasa_mercado' = "Tasa de mercado", 
+                 'Tasa_contable' = "Tasa contable")
+```
+
+Para comenzar calcularemos el coeficiente de correlación entre las variables para ver que realmente tienen una correlación positiva.
+
+```{r}
+y <- datos$'Tasa de mercado'
+x <- datos$'Tasa contable'
+with(datos, cor(x, y))
+```
+
+Observando que si tiene un coeficiente positivo, pero no tan elevado ni cercano a 1, donde tendría una correlación perfecta. A partir de esto obtendremos los valores de los $beta$ para la ecuación de la recta que ajusta el modelo mediante las funciones lm y coef. para la siguiente ecuación de la recta: $$T_{mercado} = \beta_0 + \beta_1*T_{contable} + \epsilon$$
+
+```{r}
+a <- coef(lm(y ~ x, data = datos))
+y_aj = a[1] + a[2] * x 
+```
+
+Lo que nos devolvió un valor para $\beta_0 = 0,848$ y $\beta_1 = 0.61$. Por lo que la recta del modelo sería: $$T_{mercado} = 0,848 + 0,61*T_{contable} + \epsilon$$.
+Lo que indicaría que cuando la tasa contable es nula, la tasa de mercado es 0.848. Y por cada 0,61 que incremente la tasa contable, la de mercado aumentará en 0,848. 
+
+Ya una vez con la recta ajustada determinada, se analizará la varianza de los errores. 
+
