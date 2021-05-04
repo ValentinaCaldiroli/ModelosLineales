@@ -1,0 +1,16 @@
+---
+title: "Ejercicio 4 - Práctico 2"
+author: "Valentina Caldiroli"
+date: "Modelos lineales"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+datos <- read.table("Tabla 7.4.txt")
+datos<- datos %>% filter(V1 != 'y1' )
+```
+

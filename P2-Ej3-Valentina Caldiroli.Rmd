@@ -1,0 +1,180 @@
+---
+title: "Ejercicio 3 - Práctico 2"
+author: "Valentina Caldiroli"
+date: "Modelos lineales"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(xtable)
+```
+Para comenzar con el analisis de los datos, lo primero será cargarlos:
+
+```{r, echo = FALSE}
+datos <- read.table("Tabla 7.3.txt")
+datos <- datos %>% filter(V1 != 'y')
+y <- as.numeric(datos$V1)
+x1 <- as.numeric(datos$V2)
+x2 <- as.numeric(datos$V3)
+x3 <- as.numeric(datos$V4)
+x4 <- as.numeric(datos$V5)
+datos <-data.frame(y =y, x1 = x1, x2 = x2, x3 = x3, x4= x4)
+```
+
+## Parte a:
+
+Para poder calcular $b=$
+
+Por letra, podemos plantear el modelo de regresión lineal como
+ 
+ $$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3+ \beta_4 x_4$$
+ 
+ De donde se sabe:
+ 
+ $y$ = Cantidad de vapor
+ 
+ $x_1$ = Temperatura del tanque
+ 
+ $x_2$ = Temperatura de la gasolina
+ 
+ $x_3$ = Presión del vapor del tanque
+ 
+ $x_4$ = Presión del vapor de la gasolina
+ 
+ Entonces para poder hallar los estimadores $\beta_i$ por el método de mínimos cuadrados hallamos $$\hat \beta =(X'X)^{-1}X'Y$$
+ 
+```{r, }
+X <-matrix(c(y%/%y, x1,x2,x3,x4), nrow=32)
+Y <- y
+I <- diag(1, nrow=5)
+aux <- t(X)%*%(X)
+aux2 <- t(X)%*%Y
+aux3 <- (solve(aux, I))
+beta <- aux3%*%(aux2)
+beta
+```
+ 
+Hallamos así el vector de los $\beta_i$, lo que nos da un modelo con la siguiente forma: 
+
+$$ y = 1.015 - 0.028x_1 +0.215x_2 -4.32x_3 +8.974x_4$$
+
+
+Debemos calcular también $\sigma^2$, que tiene la forma:
+
+$$\sigma^2 = \frac{SCR}{n-k-1}$$ 
+
+$SCR$ está definido como la suma de los cuadrados residuales, que podemos calcularlo como:
+
+```{r}
+y_aj <- 1.015-0.028*x1+0.215*x2-4.32*x3+8.974*x4
+residuos <- y - y_aj
+SCR <- sum(residuos^2)
+SCR
+```
+Sabiendo que $n=32~ número~de~observaciones$, $k=4,~ número~ de~ variables~ explicativas$, podemos entonces plantear 
+
+$$\sigma^2 = \frac{201.2361}{32-4-1}$$
+
+```{r}
+sigma2 <- SCR/(32-4-1)
+sigma2
+```
+Entonces:
+
+$$\sigma^2 = 7.453$$
+
+## Parte b:
+
+Pide hallar $V(b) = \sigma^2[A-(X'X)^{-1}X')][(A-(X'X)^{-1}X')]'+V(\hat \beta)$. Y conocemos también $V(\hat \beta) = (X'X)^{-1}\sigma^2$. 
+
+```{r}
+var_beta <- aux3*sigma2
+var_beta
+```
+```{r,eval = F}
+var_b <- sigma2%*%(A-aux3%*%t(X))%*%t((A-aux3%*%t(X))) + var_beta
+```
+
+## Parte c:
+
+$$R^2 =\frac{SCE}{SCT} = 1- \frac{SCR}{SCT}$$
+
+Como ya tenemos la $SCR$, debemos calcular $$SCT = Y'Y-n\bar Y^2$$ 
+
+```{r}
+n <-32
+SCT =t(Y)%*%Y - n*(mean(Y))**2
+SCT
+```
+```{r}
+R2 <- 1 - SCR/SCT
+R2
+```
+
+
+Y $$R_{aj}^2 =1- \frac{\frac{SCR}{n-k-1}}{SCT}$$
+
+Ya tenemos todo definido, asi quees solo sustituir
+
+```{r}
+R2aj <- 1- ((SCR)/(32-4-1)) / SCT
+R2aj
+```
+
+## Parte d:
+
+Para realizar el test de significación del modelo, lo que debemos hacer es el siguiente planteo para el contraste de hipótesis:
+
+$$H_0) \beta_1 = \beta_2 = \beta_3 = \beta_4 = 0 \\ H_1)  \beta_1 \neq \beta_2 \neq \beta_3 \neq \beta_4 \neq 0$$
+
+Para obtener la significación se utilizará la función $lm()$, para obteer el modelo planteado y luego un $summary()$ a este para observar los p-valores y estadísticos tanto de las variables como el del modelo en general.
+
+```{r}
+modelo <- lm(y ~x1+x2+x3+x4, datos)
+summary(modelo)
+```
+
+Este summary nos devuelve un $p-valor = 7.249e-15$, con un estadístico F del modelo igual a 84.54. Analizando lo pequeño que es el p-valor, podemos concluir que tanto a un 5%, como a un 10%, el modelo es significativo, es decir que en su conjunto las variables logran explicar a $y$.
+
+## Parte e:
+
+Para realizar ese test, también usarmos la función $lm()$
+
+```{r}
+modelo1 <- lm(y ~x1+x3, datos)
+summary(modelo1)
+```
+
+En este caso el modelo sigue siendo significativo a un 5%, dado que el $p-valor = 1.235e-09$, menor a $\alpha = 0.05$
+
+## Parte f:
+
+Para analizar una hipótesis tal como $H_0) \beta_j = 0~~\forall~j = 1,2,3,4$, podemos utilizar el mismo $summary$ que en la parte d. Se analiza cada regló comparando los p-valores. Observamos entonces que solo $x2$ y $x4$ son significativas al 5%.
+
+## Parte g:
+
+La construcción del intervalo de confianza se da por la fórmula:
+
+$$\beta_k \pm t_{\frac{\alpha}{2};n-(k+1)}\hat \sigma _{\beta_k}$$
+
+### $\beta_1:$
+
+Para el cálculo de $\hat \sigma = \sqrt{\frac{SCR}{n}}$, etonces nos quedaría:
+
+
+$$\hat \sigma = \sqrt{\frac{SCR}{32}} $$
+
+```{r}
+estsigma <- sqrt(SCR/32)
+estsigma
+```
+
+$$\hat \sigma = 2.507$$
+
+$-0.02861 \pm t_{\frac{\alpha}{2}; 32-(4+1)}
+
+
+
+## Parte h: 
