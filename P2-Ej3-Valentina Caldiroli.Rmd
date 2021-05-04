@@ -114,12 +114,12 @@ R2
 ```
 
 
-Y $$R_{aj}^2 =1- \frac{\frac{SCR}{n-k-1}}{SCT}$$
+Y $$R_{aj}^2 =1- \frac{\frac{SCR}{n-k-1}}{\frac{SCT}{n-1}}$$
 
 Ya tenemos todo definido, asi quees solo sustituir
 
 ```{r}
-R2aj <- 1- ((SCR)/(32-4-1)) / SCT
+R2aj <- 1- ((SCR)/(32-4-1)) / ((SCT)(32-1))
 R2aj
 ```
 
