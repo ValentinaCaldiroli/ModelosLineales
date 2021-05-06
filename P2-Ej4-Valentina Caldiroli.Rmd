@@ -112,6 +112,7 @@ coef(modelo)
 Comenzaremos a utilizar ahora como variable de respuesta a $y_2$. Entonces planteamos un modelo de la siguiente forma:
 
 $$y_2 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\epsilon$$
+
 ## Parte g:
 
 ## Parte h:
