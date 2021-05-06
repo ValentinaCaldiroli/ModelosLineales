@@ -25,8 +25,6 @@ datos <-data.frame(y =y, x1 = x1, x2 = x2, x3 = x3, x4= x4)
 
 ## Parte a:
 
-Para poder calcular $b=$
-
 Por letra, podemos plantear el modelo de regresión lineal como
  
  $$y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \beta_3 x_3+ \beta_4 x_4$$
@@ -43,20 +41,15 @@ Por letra, podemos plantear el modelo de regresión lineal como
  
  $x_4$ = Presión del vapor de la gasolina
  
- Entonces para poder hallar los estimadores $\beta_i$ por el método de mínimos cuadrados hallamos $$\hat \beta =(X'X)^{-1}X'Y$$
+ Entonces para poder hallar los estimadores $\beta_i$ por el método de mínimos cuadrados usamos la función $lm()$, que nos modeliza los datos, y luego con la función $coef()$ del modelo obtenemos los coeficientes $\beta_i$ que buscábamos, que es igual a la matriz b, entonces podemos llamar b al resultado que nos da $coef()$.
  
-```{r, }
-X <-matrix(c(y%/%y, x1,x2,x3,x4), nrow=32)
-Y <- y
-I <- diag(1, nrow=5)
-aux <- t(X)%*%(X)
-aux2 <- t(X)%*%Y
-aux3 <- (solve(aux, I))
-beta <- aux3%*%(aux2)
-beta
+```{r}
+modelo <- lm(y~x1+x2+x3+x4, datos)
+b <- coef(modelo)
+b
 ```
  
-Hallamos así el vector de los $\beta_i$, lo que nos da un modelo con la siguiente forma: 
+ Entonces nos queda un modelo con la siguiente forma:
 
 $$ y = 1.015 - 0.028x_1 +0.215x_2 -4.32x_3 +8.974x_4$$
 
@@ -68,17 +61,17 @@ $$\sigma^2 = \frac{SCR}{n-k-1}$$
 $SCR$ está definido como la suma de los cuadrados residuales, que podemos calcularlo como:
 
 ```{r}
-y_aj <- 1.015-0.028*x1+0.215*x2-4.32*x3+8.974*x4
-residuos <- y - y_aj
+residuos <- residuals(modelo)
 SCR <- sum(residuos^2)
 SCR
 ```
+
 Sabiendo que $n=32~ número~de~observaciones$, $k=4,~ número~ de~ variables~ explicativas$, podemos entonces plantear 
 
 $$\sigma^2 = \frac{201.2361}{32-4-1}$$
 
 ```{r}
-sigma2 <- SCR/(32-4-1)
+sigma2 <- SCR/df.residual(modelo)
 sigma2
 ```
 Entonces:
@@ -87,41 +80,23 @@ $$\sigma^2 = 7.453$$
 
 ## Parte b:
 
-Pide hallar $V(b) = \sigma^2[A-(X'X)^{-1}X')][(A-(X'X)^{-1}X')]'+V(\hat \beta)$. Y conocemos también $V(\hat \beta) = (X'X)^{-1}\sigma^2$. 
+Como sabemos b = a la matriz de los $\beta_i$. Que ya la tenemos calculada, podemos entonces aplicar directo la función que calcula varianzas.
 
 ```{r}
-var_beta <- aux3*sigma2
-var_beta
+var(b)
 ```
-```{r,eval = F}
-var_b <- sigma2%*%(A-aux3%*%t(X))%*%t((A-aux3%*%t(X))) + var_beta
-```
+
+Obtenemos que $Var(b) = 23.35$.
 
 ## Parte c:
 
-$$R^2 =\frac{SCE}{SCT} = 1- \frac{SCR}{SCT}$$
-
-Como ya tenemos la $SCR$, debemos calcular $$SCT = Y'Y-n\bar Y^2$$ 
+Para obetner el $R^2$ y el $R_{aj}^2$ podemos aplicar la función $summary()$ al modelo que estimamos con $lm()$, y nos brinda ambos resultados.
 
 ```{r}
-n <-32
-SCT =t(Y)%*%Y - n*(mean(Y))**2
-SCT
-```
-```{r}
-R2 <- 1 - SCR/SCT
-R2
+summary(modelo)
 ```
 
-
-Y $$R_{aj}^2 =1- \frac{\frac{SCR}{n-k-1}}{\frac{SCT}{n-1}}$$
-
-Ya tenemos todo definido, asi quees solo sustituir
-
-```{r}
-R2aj <- 1- ((SCR)/(32-4-1)) / ((SCT)(32-1))
-R2aj
-```
+Entonces obtuvimos como resultado que $R^2=0.9261$ y $R_{aj}2=0.9151$. 
 
 ## Parte d:
 
@@ -129,12 +104,7 @@ Para realizar el test de significación del modelo, lo que debemos hacer es el s
 
 $$H_0) \beta_1 = \beta_2 = \beta_3 = \beta_4 = 0 \\ H_1)  \beta_1 \neq \beta_2 \neq \beta_3 \neq \beta_4 \neq 0$$
 
-Para obtener la significación se utilizará la función $lm()$, para obteer el modelo planteado y luego un $summary()$ a este para observar los p-valores y estadísticos tanto de las variables como el del modelo en general.
-
-```{r}
-modelo <- lm(y ~x1+x2+x3+x4, datos)
-summary(modelo)
-```
+Para obtener la significación se utilizarán datos brindados en el $summary(modelo)$, observandp e $p-valor$ y los estadísticos F.
 
 Este summary nos devuelve un $p-valor = 7.249e-15$, con un estadístico F del modelo igual a 84.54. Analizando lo pequeño que es el p-valor, podemos concluir que tanto a un 5%, como a un 10%, el modelo es significativo, es decir que en su conjunto las variables logran explicar a $y$.
 
@@ -151,30 +121,79 @@ En este caso el modelo sigue siendo significativo a un 5%, dado que el $p-valor 
 
 ## Parte f:
 
-Para analizar una hipótesis tal como $H_0) \beta_j = 0~~\forall~j = 1,2,3,4$, podemos utilizar el mismo $summary$ que en la parte d. Se analiza cada regló comparando los p-valores. Observamos entonces que solo $x2$ y $x4$ son significativas al 5%.
+Para analizar una hipótesis tal como $H_0) \beta_j = 0~~\forall~j = 1,2,3,4$, podemos utilizar el mismo $summary(modelo)$ que en la parte d. Se analiza cada regló comparando los p-valores. Observamos entonces que solo $x2$ y $x4$ son significativas al 5%.
 
 ## Parte g:
 
-La construcción del intervalo de confianza se da por la fórmula:
+La construccipon de los intervalos de confianza al $(1-\alpha)\%$, puede hacerse con la función $confint(modelo)$, de donde podemos añadir el nivel de confianza al que se quiere trabajar con el argumento $level$, por defecto trabaja con $\alpha=0.05$.
 
-$$\beta_k \pm t_{\frac{\alpha}{2};n-(k+1)}\hat \sigma _{\beta_k}$$
-
-### $\beta_1:$
-
-Para el cálculo de $\hat \sigma = \sqrt{\frac{SCR}{n}}$, etonces nos quedaría:
-
-
-$$\hat \sigma = \sqrt{\frac{SCR}{32}} $$
 
 ```{r}
-estsigma <- sqrt(SCR/32)
-estsigma
+confint(modelo)
 ```
 
-$$\hat \sigma = 2.507$$
+Nos devuelve entonces el intervalo de confianza al 95% para cada $\beta_i$, esto indica que:
 
-$-0.02861 \pm t_{\frac{\alpha}{2}; 32-(4+1)}
+$\beta_0$ se encuentra entre $[-2.8040;~ 4.8341]$ con un 95% de confianza.
 
+$\beta_1$ se encuentra entre $[-0.2145;~ 0.1572]$ con un 95% de confianza.
+
+$\beta_2$ se encuentra entre $[0.0768;~ 0.3547]$ con un 95% de confianza.
+
+$\beta_3$ se encuentra entre $[-10.1697;~ 1.5296]$ con un 95% de confianza.
+
+$\beta_4$ se encuentra entre $[3.2859;~ 14.6638]$ con un 95% de confianza.
 
 
 ## Parte h: 
+
+Para trabajr en esta parte, utilizaremos una función de la librería $car$, llamada $linearHypothesis()$, que nos permitirá testear hipotesis que no están igualadas a 0, y se observan a continuación:
+
+* $H_0) = \beta_1 = \beta_2 = \frac{\beta_3}{12} = \frac{\beta_4}{12}$
+
+```{r}
+library(car)
+d <- matrix(c(1, 1, 1/12, 1/12), ncol=1, nrow = 4)
+A <- cbind(0, diag(4))
+linearHypothesis(modelo, A, d, test = 'F')
+```
+
+Obtuvimos entonces un $p-valor=2.21e-16$, lo cual nos indica que bajo esta hipotesis el modelo es significativo al 5%. 
+
+* $\beta_1 = \beta_2$
+
+```{r}
+d    <- matrix(c(1,1,0,0), nrow=4)
+A    <- cbind(0, diag(4))
+linearHypothesis(modelo, A, d, test = 'F')
+```
+
+En este caso, obtuvimos un $p-valor = 2.2e-16$ también, similar al anterior, lo que nos indica que también es un modelo significativo.
+
+* $\beta_2 = \frac{\beta_3}{12}$
+
+```{r}
+d    <- matrix(c(0,1,1/12,0), nrow=4)
+A    <- cbind(0, diag(4))
+linearHypothesis(modelo, A, d, test = 'F')
+```
+
+Acá el $p-valor = 2.134e-13$, un poco mayor a los anteriores, pero igualmente significativo al 5%.
+
+* $\beta_3 = \beta_4$
+
+```{r}
+d <- matrix(c(0,0,1,1), nrow=4)
+A <- cbind(0, diag(4))
+linearHypothesis(modelo, A, d, test = 'F')
+```
+
+En este caso, el $p-valor = 2.283e-11$ es un poco mayor pero significativo al 5% de todas formas. 
+
+* $\beta_1=\beta_2$ y $\beta_3=\beta_4$
+
+```{r}
+d <- matrix(c(1,1,0,0), nrow=4)
+A <- cbind(0, diag(4))
+linearHypothesis(modelo, A, d, test = 'F')
+```
