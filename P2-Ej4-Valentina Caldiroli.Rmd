@@ -7,10 +7,111 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
 ```
 
 ```{r}
 datos <- read.table("Tabla 7.4.txt")
-datos<- datos %>% filter(V1 != 'y1' )
+datos<- datos %>% filter(V1 != 'y1')
+y1 <- as.numeric(datos$V1)
+y2 <- as.numeric(datos$V2)
+x1 <- as.numeric(datos$V3)
+x2 <- as.numeric(datos$V4)
+x3 <- as.numeric(datos$V5)
+datos <-data.frame(y1 =y1, y2 = y2, x1 = x1, x2 = x2, x3= x3)
 ```
 
+Se cargaron los datos para comenzar a trabajar en este ejercicoi, observando 3 variables explicativas, y 2 variables de respuestas, tenemos entonces:
+
+$x_1 =~Temperatura~(C°)$
+
+$x_2 =~Concentración ~ de ~ un ~ reactivo~ (\%)$
+
+$x_3 =~Tiempo~de~reacción~(horas)$
+
+$y_1 =~ Porcentaje~ del~ material~ inicial~ que~ no~ presenta~ cambios$
+
+$y_2 =~Porcentaje~ que~ se~ convierte~ al~ producto~ deseado$
+
+## Parte a:
+
+Comenzaremos trabajando con $y_1$, en donde podemos estimar una recta que ajuste al modelo como:
+
+$$y_1 = \beta_0 + \beta_1x_1+\beta_2x_2+\beta_3x_3$$
+
+Calcularemos entonces las estimaciones de los coeficientes $\beta_i$ mediante mínimos cuadrados ordinarios.
+
+```{r}
+modelo <- lm(y1~x1+x2+x3)
+b <- coef(modelo)
+b
+```
+
+Obtuvimos la matriz b de $\beta_i$, lo que nos da un modelo de la forma:
+
+$$y_1 = 332.11 -1.545x_1-1.424x_2-2.237x_3$$
+
+Para la estimación de $\sigma^2$, utilizaremos la fórmula:
+
+$$\sigma^2 = \frac{SCR}{n-k-1}$$
+
+Para comenzar, calcularemos la suma de los cuadrados de los residuos
+
+```{r}
+residuos <- residuals(modelo)
+SCR <- sum(residuos^2)
+SCR
+```
+
+Como sabemos $n= 19$ y $k =3$, entonces podemos sustituir en la fórmula y obtener
+
+```{r}
+sigma2 <- SCR /df.residual(modelo)
+sigma2
+```
+
+
+$$\sigma^2=\frac{80.1735}{19-3-1} = 5.3449$$
+
+## Parte b:
+
+Aplicamos la función $var()$ a la matriz b, y nos devuelve
+
+```{r}
+var(b)
+```
+
+Nos devuelve que $Var(b)=27863.57$
+
+## Parte c:
+
+Para hallar el $R^2$ y $R_{aj}^2$, utilizaremos la función $summary()$ al modelo estimado, y nos devuelve entre otros, los datos pedidos
+
+```{r}
+summary(modelo)
+```
+
+Obtuvimos como resultados entonces $R^2 = 0.9551$ y $R_{aj}^2 = 0.9462$
+
+## Parte d:
+
+$$y_1 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\beta_4x_1^2+\beta_5x_2^2+\beta_6x_3^2+\beta_7x_1x_2+\beta_8x_1x_3+\beta_9x_2x_3+\epsilon$$
+
+En este caso plantearemos la función $lm()$, para modelizar lo escrito anteriormente. Luego se le aplicará la función $coef()$ al modelo, para que nos brinde todas las betas.
+
+```{r}
+modelo <- lm(y1~x1+x2+x3+x1**2+x2**2+(x3)**2+x1*x2+x1*x3+x2*x3, datos)
+coef(modelo)
+```
+
+
+## Parte e:
+
+## Parte f:
+
+Comenzaremos a utilizar ahora como variable de respuesta a $y_2$. Entonces planteamos un modelo de la siguiente forma:
+
+$$y_2 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\epsilon$$
+## Parte g:
+
+## Parte h:
