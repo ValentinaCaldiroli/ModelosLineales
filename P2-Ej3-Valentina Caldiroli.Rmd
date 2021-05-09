@@ -8,7 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-library(xtable)
+library(car)
 ```
 Para comenzar con el analisis de los datos, lo primero será cargarlos:
 
@@ -148,65 +148,49 @@ $\beta_4$ se encuentra entre $[3.2859;~ 14.6638]$ con un 95% de confianza.
 
 ## Parte h: 
 
-Para trabajr en esta parte, utilizaremos una función de la librería $car$, llamada $linearHypothesis()$, que nos permitirá testear hipotesis que no están igualadas a 0, y se observan a continuación:
+Para trabajar en esta parte, utilizaremos una función de la librería $car$, llamada $linearHypothesis()$, que nos permitirá testear otras hipótesis nulas, y se observan a continuación:
 
-* $H_0) = \beta_1 = \beta_2 = \frac{\beta_3}{12} = \frac{\beta_4}{12}$
-
-```{r}
-library(car)
-d <- matrix(c(0,0,0,0), nrow = 4)
-A <- matrix(c(0,1,0,0,0),
-            c(0,0,1,0,0),
-            c(0,0,0,1/12,0),
-            c(0,0,0,0,1/12))
-linearHypothesis(modelo, A, d, test = 'F')
-```
-
-Obtuvimos entonces un $p-valor=2.21e-16$, lo cual nos indica que bajo esta hipotesis el modelo es significativo al 5%. 
-
-* $\beta_1 = \beta_2$
+* $H_0)~~ \beta_1 = \beta_2 = \frac{\beta_3}{12} = \frac{\beta_4}{12}$
 
 ```{r}
-d <- matrix(c(0,0,0,0), nrow=4)
-A <- matrix(c(0,1,0,0,0),
-            c(0,0,1,0,0),
-            c(0,0,0,0,0),
-            c(0,0,0,0,0))
-linearHypothesis(modelo, A, d, test = 'F')
+A <- matrix(c(0,1,-1,1/12,-1/12), ncol=5)
+linearHypothesis(modelo, A, test = 'F')
 ```
 
-En este caso, obtuvimos un $p-valor = 2.2e-16$ también, similar al anterior, lo que nos indica que también es un modelo significativo.
+Obtuvimos entonces un $p-valor=0.0015$, lo cual nos indica que bajo esta hipotesis el modelo es significativo al 5%. 
 
-* $\beta_2 = \frac{\beta_3}{12}$
+* $H_0)~~\beta_1 = \beta_2$
 
 ```{r}
-d <- matrix(c(0,0,0,0), nrow=4)
-A <- matrix(c(0,0,0,0,0),
-            c(0,0,1,0,0),
-            c(0,0,0,1/12,0),
-            c(0,0,0,0,0))
-linearHypothesis(modelo, A, d, test = 'F')
+A <- matrix(c(0,1,-1,0,0), ncol=5)
+linearHypothesis(modelo, A, test = 'F')
 ```
 
-Acá el $p-valor = 2.134e-13$, un poco mayor a los anteriores, pero igualmente significativo al 5%.
+En este caso, obtuvimos un $p-valor =0.0689$, hablamos entonces de un contraste no significativo al 5%, puede serlo al 10%.
 
-* $\beta_3 = \beta_4$
+* $H_0)~~\beta_2 = \frac{\beta_3}{12}$
 
 ```{r}
-d <- matrix(c(0,0,0,0), nrow=4)
-A <- matrix(c(0,0,0,0,0),
-            c(0,0,0,0,0),
-            c(0,0,0,1,0),
-            c(0,0,0,0,1))
-linearHypothesis(modelo, d, A, test = 'F')
+A <- matrix(c(0,0,1,12*(-1/12),0), ncol =5)
+linearHypothesis(modelo, A, test = 'F')
 ```
 
-En este caso, el $p-valor = 2.283e-11$ es un poco mayor pero significativo al 5% de todas formas. 
+Acá el $p-valor = 0.0118$, por lo que este contraste de hipótesis no es significativo al 5%, tampoco lo es al 10%.
 
-* $\beta_1=\beta_2$ y $\beta_3=\beta_4$
+* $H_0)~~\beta_3 = \beta_4$
 
 ```{r}
-d <- matrix(c(1,1,0,0), nrow=4)
-A <- cbind(0, diag(4))
-linearHypothesis(modelo, A, d, test = 'F')
+A <- matrix(c(0,0,0,1,-1), ncol=5)
+linearHypothesis(modelo, A, test = 'F')
 ```
+
+En este caso, el $p-valor = 0.02261$ también el modelo es significaivo al 5% para este contraste. 
+
+* $H_0)~~\beta_1=\beta_2$ y $\beta_3=\beta_4$
+
+```{r}
+A <- matrix(c(0,1,-1,0,0,0,0,0,1,-1), nrow = 2)
+linearHypothesis(modelo, A, test = 'F')
+```
+
+Habalmos de un $p-valor = 0.01081$, por lo que el modelo es significativo al 5%, donde en realidad lo que testeamos es que todos los $beta_i$ son iguales entre sí.
