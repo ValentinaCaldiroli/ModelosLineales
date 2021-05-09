@@ -8,6 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
+library(car)
 ```
 
 ```{r}
@@ -75,23 +76,21 @@ $$\sigma^2=\frac{80.1735}{19-3-1} = 5.3449$$
 
 ## Parte b:
 
-Aplicamos la función $var()$ a la matriz b, y nos devuelve
-
-```{r}
-var(b)
-```
-
-Nos devuelve que $Var(b)=27863.57$
-
-## Parte c:
-
-Para hallar el $R^2$ y $R_{aj}^2$, utilizaremos la función $summary()$ al modelo estimado, y nos devuelve entre otros, los datos pedidos
+Para obtener la varianza de b, elevamos al cuadrado el error estandar del modelo, dato que conseguimos con la función $summary()$ que se aplica al modelo
 
 ```{r}
 summary(modelo)
 ```
 
-Obtuvimos como resultados entonces $R^2 = 0.9551$ y $R_{aj}^2 = 0.9462$
+```{r}
+2.312^2
+```
+
+Nos devuelve que $Var(b)= 2.312^2 =5.3453$
+
+## Parte c:
+
+Los datods pedidos se encuentran expresado en el resumen del modelo que se halló en el punto anterior, y obtuvimos como resultados entonces $R^2 = 0.9551$ y $R_{aj}^2 = 0.9462$
 
 ## Parte d:
 
@@ -100,12 +99,35 @@ $$y_1 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\beta_4x_1^2+\beta_5x_2^2+\beta
 En este caso plantearemos la función $lm()$, para modelizar lo escrito anteriormente. Luego se le aplicará la función $coef()$ al modelo, para que nos brinde todas las betas.
 
 ```{r}
-modelo <- lm(y1~x1+x2+x3+x1**2+x2**2+(x3)**2+x1*x2+x1*x3+x2*x3, datos)
-coef(modelo)
+modelo1 <- lm(y1~x1+x2+x3+x1**2+x2**2+(x3)**2+x1*x2+x1*x3+x2*x3, datos)
+coef(modelo1)
+```
+Obtuvimos entonces el siguiente resultado:
+
+$$y_1 = $$
+
+Y para calcular $\sigma^2$ utilizaremos la función $residuals()$ del modelo para poder hallar los residuos y poder sumarlos y elevarlos al cuadrado para obtener $SCR$
+
+```{r}
+residuos <- residuals(modelo)
+SCR <- sum(residuos^2)
+SCR
+sigma2 <- SCR /df.residual(modelo)
+sigma2
 ```
 
+Y llegamos entonces a la conclusión de que 
+$$\sigma^2 = \frac{SCR}{19-9-1}=$$
 
 ## Parte e:
+
+Para hallar tanto el $R^2$ como $R_{aj}^2$, lo que haremos es realizarle un $summary()$ al modelo 1, y nos brinda el siguiente resumen
+
+```{r}
+summary(modelo1)
+```
+
+Y obtenemos como resultado que $R^2=$ y $R_{aj}^2=$.
 
 ## Parte f:
 
@@ -113,6 +135,61 @@ Comenzaremos a utilizar ahora como variable de respuesta a $y_2$. Entonces plant
 
 $$y_2 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\epsilon$$
 
+```{r}
+modelo2 <- lm(y2~x1+x2+x3, datos)
+beta <- coef(modelo2)
+beta
+```
+
+Obtuvimos entonces un modelo con la siguiente forma
+
+$$y_2 = -26.035 +0.4045x_1+0.2929x_2+1.0338x_3$$
+Y conociendo al vector $x_0$, calculamos $y_0$ como indica la letra utilizando la estimación de las $\beta_i$ que obtuvimos realizando el modelo con la función $lm()$ y luego la función $coef()$. 
+
+```{r}
+x0 <- c(1,165,32,5)
+y0 <- t(x0)%*%beta
+y0
+```
+
+Como $y_0 = 55.26027$, si le palicamos la esperanza a este valor podemos concluir que $E_{y0} = 55.26027$, dado que la esperanza de una constante es la propia constante. Debemos entonces encontrar un intervalo de confianza para este valor. 
+
+Un intervalo de confianza al $100(1-\alpha)\%$, puede construirse como:
+
+$$x_0'\hat \beta \pm t_{\alpha/2, n-k-1}S \sqrt{x_0'(X'X)^{-1}x_0}$$
+
+```{r}
+X <- matrix(c(y2/y2, x1,x2,x3), nrow = 19, ncol = 4)
+I <- diag(1, nrow = 4)
+aux <- t(X)%*%X
+aux1 <- solve(aux, I)
+t(x0)%*%aux1%*%x0
+```
+```{r}
+S = sqrt(sum(residuals(modelo2)^2)/df.residual(modelo2))
+S
+```
+
+$$55.26027\pm t_{(\alpha/2),16}4.078\sqrt{0.1997}$$
+
 ## Parte g:
 
+Un intervalo de predicción para $y_0$ puede definirse de la siguiente manera:
+
+$$x_0'\hat \beta \pm t_{\alpha/2,n-k-1}S \sqrt{1+x_0'(X'X)^{-1}x_0}$$
+Como tenemos todos los datos podemos sustituir y llegar al siguiente resultado:
+
+$$55.26027 \pm t_{(\alpha/2),16}4.078\sqrt{1+0.1197}$$
 ## Parte h:
+
+Debemos entonces testear la siguiente hipótesis nula
+
+$$H_0) 2\beta_1 = 2\beta_2 = \beta 3$$
+```{r}
+d    <- matrix(c(0,0,0), ncol=1)
+A    <- matrix(c(0,2,0,0),
+               c(0,0,2,0),
+               c(0,0,0,1))
+linearHypothesis(modelo2, A, d, test = 'F')
+```
+

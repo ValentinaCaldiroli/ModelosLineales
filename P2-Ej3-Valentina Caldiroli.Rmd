@@ -80,21 +80,22 @@ $$\sigma^2 = 7.453$$
 
 ## Parte b:
 
-Como sabemos b = a la matriz de los $\beta_i$. Que ya la tenemos calculada, podemos entonces aplicar directo la función que calcula varianzas.
-
-```{r}
-var(b)
-```
-
-Obtenemos que $Var(b) = 23.35$.
-
-## Parte c:
-
-Para obetner el $R^2$ y el $R_{aj}^2$ podemos aplicar la función $summary()$ al modelo que estimamos con $lm()$, y nos brinda ambos resultados.
+Como sabemos b = a la matriz de los $\beta_i$. Que ya la tenemos calculada, podemos entonces elevar al cuadrado los errores estándar del resumen del modelo que lo obtenemos con la función $summary()$.
 
 ```{r}
 summary(modelo)
 ```
+
+```{r}
+2.73^2
+```
+
+
+Obtenemos que $Var(b) = 2.73^2 =7.4529$.
+
+## Parte c:
+
+Para obetner el $R^2$ y el $R_{aj}^2$ podemos aplicar la función $summary()$ al modelo que estimamos con $lm()$, resumen que ya tenemos del punto anterior y nos brinda los siguientes resultados.
 
 Entonces obtuvimos como resultado que $R^2=0.9261$ y $R_{aj}2=0.9151$. 
 
@@ -153,8 +154,11 @@ Para trabajr en esta parte, utilizaremos una función de la librería $car$, lla
 
 ```{r}
 library(car)
-d <- matrix(c(1, 1, 1/12, 1/12), ncol=1, nrow = 4)
-A <- cbind(0, diag(4))
+d <- matrix(c(0,0,0,0), nrow = 4)
+A <- matrix(c(0,1,0,0,0),
+            c(0,0,1,0,0),
+            c(0,0,0,1/12,0),
+            c(0,0,0,0,1/12))
 linearHypothesis(modelo, A, d, test = 'F')
 ```
 
@@ -163,8 +167,11 @@ Obtuvimos entonces un $p-valor=2.21e-16$, lo cual nos indica que bajo esta hipot
 * $\beta_1 = \beta_2$
 
 ```{r}
-d    <- matrix(c(1,1,0,0), nrow=4)
-A    <- cbind(0, diag(4))
+d <- matrix(c(0,0,0,0), nrow=4)
+A <- matrix(c(0,1,0,0,0),
+            c(0,0,1,0,0),
+            c(0,0,0,0,0),
+            c(0,0,0,0,0))
 linearHypothesis(modelo, A, d, test = 'F')
 ```
 
@@ -173,8 +180,11 @@ En este caso, obtuvimos un $p-valor = 2.2e-16$ también, similar al anterior, lo
 * $\beta_2 = \frac{\beta_3}{12}$
 
 ```{r}
-d    <- matrix(c(0,1,1/12,0), nrow=4)
-A    <- cbind(0, diag(4))
+d <- matrix(c(0,0,0,0), nrow=4)
+A <- matrix(c(0,0,0,0,0),
+            c(0,0,1,0,0),
+            c(0,0,0,1/12,0),
+            c(0,0,0,0,0))
 linearHypothesis(modelo, A, d, test = 'F')
 ```
 
@@ -183,9 +193,12 @@ Acá el $p-valor = 2.134e-13$, un poco mayor a los anteriores, pero igualmente s
 * $\beta_3 = \beta_4$
 
 ```{r}
-d <- matrix(c(0,0,1,1), nrow=4)
-A <- cbind(0, diag(4))
-linearHypothesis(modelo, A, d, test = 'F')
+d <- matrix(c(0,0,0,0), nrow=4)
+A <- matrix(c(0,0,0,0,0),
+            c(0,0,0,0,0),
+            c(0,0,0,1,0),
+            c(0,0,0,0,1))
+linearHypothesis(modelo, d, A, test = 'F')
 ```
 
 En este caso, el $p-valor = 2.283e-11$ es un poco mayor pero significativo al 5% de todas formas. 
