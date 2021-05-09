@@ -180,16 +180,14 @@ $$x_0'\hat \beta \pm t_{\alpha/2,n-k-1}S \sqrt{1+x_0'(X'X)^{-1}x_0}$$
 Como tenemos todos los datos podemos sustituir y llegar al siguiente resultado:
 
 $$55.26027 \pm t_{(\alpha/2),16}4.078\sqrt{1+0.1197}$$
+
 ## Parte h:
 
 Debemos entonces testear la siguiente hipótesis nula
 
 $$H_0) 2\beta_1 = 2\beta_2 = \beta 3$$
 ```{r}
-d    <- matrix(c(0,0,0), ncol=1)
-A    <- matrix(c(0,2,0,0),
-               c(0,0,2,0),
-               c(0,0,0,1))
-linearHypothesis(modelo2, A, d, test = 'F')
+A    <- matrix(c(0,2,0,0,0,0,2,0,0,0,0,1), ncol =4)
+linearHypothesis(modelo2, A, test = 'F')
 ```
 
