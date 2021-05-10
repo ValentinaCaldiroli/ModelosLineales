@@ -99,25 +99,25 @@ $$y_1 = \beta_0+\beta_1x_1+\beta_2x_2+\beta_3x_3+\beta_4x_1^2+\beta_5x_2^2+\beta
 En este caso plantearemos la función $lm()$, para modelizar lo escrito anteriormente. Luego se le aplicará la función $coef()$ al modelo, para que nos brinde todas las betas.
 
 ```{r}
-modelo1 <- lm(y1~x1+x2+x3+x1**2+x2**2+(x3)**2+x1*x2+x1*x3+x2*x3, datos)
+modelo1 <- lm(y1~x1+x2+x3+I(x1^2)+I(x2^2)+I(x3^2)+x1*x2+x1*x3+x2*x3, datos)
 coef(modelo1)
 ```
 Obtuvimos entonces el siguiente resultado:
 
-$$y_1 = $$
+$$y_1 = 964.929 -7.4421x_1 -11.5077x_2-2.1401x_3+0.0124x_1^2+0.0332x_2^2-0.2940x_3^2+0.0535x_1x_2+0.0380x_1x_3-0.1016x_2x_3$$
 
 Y para calcular $\sigma^2$ utilizaremos la función $residuals()$ del modelo para poder hallar los residuos y poder sumarlos y elevarlos al cuadrado para obtener $SCR$
 
 ```{r}
-residuos <- residuals(modelo)
+residuos <- residuals(modelo1)
 SCR <- sum(residuos^2)
 SCR
-sigma2 <- SCR /df.residual(modelo)
+sigma2 <- SCR /df.residual(modelo1)
 sigma2
 ```
 
 Y llegamos entonces a la conclusión de que 
-$$\sigma^2 = \frac{SCR}{19-9-1}=$$
+$$\sigma^2 = \frac{SCR}{19-9-1}=5.134$$
 
 ## Parte e:
 
@@ -127,7 +127,7 @@ Para hallar tanto el $R^2$ como $R_{aj}^2$, lo que haremos es realizarle un $sum
 summary(modelo1)
 ```
 
-Y obtenemos como resultado que $R^2=$ y $R_{aj}^2=$.
+Y obtenemos como resultado que $R^2=0.9741$ y $R_{aj}^2=0.9483$. Decimos entonces que al tener un $R^2$ cercano a 1, el modelo está explicandoo en gran parte a la $y_1$, dado que si $R^2 =1$, hablamos de que la $y$ es explicada completamente por el modelo.
 
 ## Parte f:
 
@@ -191,3 +191,4 @@ A    <- matrix(c(0,2,0,0,0,0,2,0,0,0,0,1), ncol =4)
 linearHypothesis(modelo2, A, test = 'F')
 ```
 
+Obtuvimos un $p-valor = 0.203$, demostrando entonces que este contraste no es significativo ni al 5% ni al 10%.
